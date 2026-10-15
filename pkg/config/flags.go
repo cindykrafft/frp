@@ -207,7 +207,11 @@ func (f *BoolFuncFlag) String() string {
 }
 
 func (f *BoolFuncFlag) Set(s string) error {
-	f.v = strconv.FormatBool(f.v) == "true"
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		return err
+	}
+	f.v = v
 
 	if !f.v {
 		if f.FalseFunc != nil {
@@ -253,7 +257,7 @@ func RegisterServerConfigFlags(cmd *cobra.Command, c *v1.ServerConfig, opts ...R
 	webServerTLS := v1.TLSConfig{}
 	cmd.PersistentFlags().StringVarP(&webServerTLS.CertFile, "dashboard_tls_cert_file", "", "", "dashboard tls cert file")
 	cmd.PersistentFlags().StringVarP(&webServerTLS.KeyFile, "dashboard_tls_key_file", "", "", "dashboard tls key file")
-	cmd.PersistentFlags().VarP(&BoolFuncFlag{
+	cmd.PersistentFlags().VarPF(&BoolFuncFlag{
 		TrueFunc: func() { c.WebServer.TLS = &webServerTLS },
-	}, "dashboard_tls_mode", "", "if enable dashboard tls mode")
+	}, "dashboard_tls_mode", "", "if enable dashboard tls mode").NoOptDefVal = "true"
 }
